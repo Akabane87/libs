@@ -1,6 +1,5 @@
-/**
- * \file
- * \brief Header file which defines memory related variables and functions
+﻿/**
+ * \file sysmem.h
  *
  * Copyright (C) 2015 PSP2SDK Project
  *
@@ -9,66 +8,39 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+
 #ifndef _PSP2_KERNEL_SYSMEM_H_
 #define _PSP2_KERNEL_SYSMEM_H_
 
-#include <psp2/types.h>
+#include <psp2/kernel/sysmem/memblock.h>
 
-#ifdef __cplusplus
+#ifdef	__cplusplus
 extern "C" {
-#endif
+#endif	// def __cplusplus
 
-typedef int SceKernelMemBlockType;
+typedef struct SceKernelFreeMemorySizeInfo {
+	SceSize size;
+	SceSize sizeMain;
+	SceSize sizeCdram;
+	SceSize sizePhycont;
+} SceKernelFreeMemorySizeInfo;
 
-enum {
-	SCE_KERNEL_MEMBLOCK_TYPE_USER_RW	= 0x0c20d060,
-	SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE	= 0x0c208060,
-	SCE_KERNEL_MEMBLOCK_TYPE_USER_MAIN_PHYCONT_RW	= 0x0c80d060,
-	SCE_KERNEL_MEMBLOCK_TYPE_USER_MAIN_PHYCONT_NC_RW	= 0x0d808060,
-	SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW	= 0x09408060
-};
+/**
+ * Get free memory size
+ */
+int sceKernelGetFreeMemorySize(
+	SceKernelFreeMemorySizeInfo *pInfo);
 
-/***
- * Allocates a new memoy block
- *
- * @param[in] name - Name for the memory block
- * @param[in] type - Type of the memory to allocate
- * @param[in] size - Size of the memory to allocate
- * @param[in] optp - Memory block options?
- *
- * @return SceUID of the memory block on success, < 0 on error.
-*/
-SceUID sceKernelAllocMemBlock(const char *name, SceKernelMemBlockType type, int size, void *optp);
 
+// VM stuff
 SceUID sceKernelAllocMemBlockForVM(const char *, SceSize);
-
-/***
- * Frees new memoy block
- *
- * @param[in] uid - SceUID of the memory block to free
- *
- * @return 0 on success, < 0 on error.
-*/
-int sceKernelFreeMemBlock(SceUID uid);
-
-/***
- * Gets the base address of a memoy block
- *
- * @param[in] uid - SceUID of the memory block to free
- * @param[out] basep - Base address of the memory block identified by SceUID
- *
- * @return 0 on success, < 0 on error.
-*/
-int sceKernelGetMemBlockBase(SceUID uid, void **basep);
-
-SceUID sceKernelFindMemBlockByAddr(const void *, int);
 
 void sceKernelSyncVMDomain(SceUID, void *, SceSize);
 void sceKernelOpenVMDomain();
 void sceKernelCloseVMDomain();
 
-#ifdef __cplusplus
+#ifdef	__cplusplus
 }
-#endif
+#endif	// def __cplusplus
 
-#endif
+#endif /* _PSP2_KERNEL_SYSMEM_H_ */ 

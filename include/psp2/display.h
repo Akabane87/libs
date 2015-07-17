@@ -1,6 +1,5 @@
 /**
- * \file
- * \brief Header file which defines display related variables and functions
+ * \file display.h
  *
  * Copyright (C) 2015 PSP2SDK Project
  *
@@ -9,158 +8,127 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#ifndef _PSP2_DISPLAY_H_
-#define _PSP2_DISPLAY_H_
+
+#ifndef _PSP2_DISPLAY_DISPLAY_H_
+#define _PSP2_DISPLAY_DISPLAY_H_
 
 #include <psp2/types.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
-#endif
+#endif	/* defined(__cplusplus) */
 
-enum {
-	SCE_DISPLAY_ERROR_OK			= 0,
-	SCE_DISPLAY_ERROR_INVALID_HEAD		= 0x80290000,
-	SCE_DISPLAY_ERROR_INVALID_VALUE		= 0x80290001,
-	SCE_DISPLAY_ERROR_INVALID_ADDR		= 0x80290002,
-	SCE_DISPLAY_ERROR_INVALID_PIXELFORMAT	= 0x80290003,
-	SCE_DISPLAY_ERROR_INVALID_PITCH		= 0x80290004,
-	SCE_DISPLAY_ERROR_INVALID_RESOLUTION	= 0x80290005,
-	SCE_DISPLAY_ERROR_INVALID_UPDATETIMING	= 0x80290006,
-	SCE_DISPLAY_ERROR_NO_FRAME_BUFFER	= 0x80290007,
-	SCE_DISPLAY_ERROR_NO_PIXEL_DATA		= 0x80290008
-};
-
-#define PSP2_DISPLAY_PIXELFORMAT_A8B8G8R8 0x00000000U
-
-enum {
-	/** Buffer change effective immediately */
-	PSP2_DISPLAY_SETBUF_IMMEDIATE = 0,
-	/** Buffer change effective next frame */
-	PSP2_DISPLAY_SETBUF_NEXTFRAME = 1
-};
 
 /**
- * Structure used with sceDisplaySetFrameBuf to set/update framebuffer.
- * Original screen resolution is 960x544, but the following resolutions
- * can also be supplied as width and height :
- * 480x272, 640x368, 720x408
- *
- * @note - This structure is returned by sceDisplayGetFrameBuf
-*/
+ * Error number definition
+ */
+
+/**
+ * invalid display head argument 
+ */
+#define SCE_DISPLAY_ERROR_INVALID_HEAD			-2144796672	/* 0x80290000 */
+
+/**
+ * invalid argument 
+ */
+#define SCE_DISPLAY_ERROR_INVALID_VALUE			-2144796671	/* 0x80290001 */
+
+/**
+ * invalid address argument 
+ */
+#define SCE_DISPLAY_ERROR_INVALID_ADDR			-2144796670	/* 0x80290002 */
+
+/**
+ * invalid pixel format argument 
+ */
+#define SCE_DISPLAY_ERROR_INVALID_PIXELFORMAT	-2144796669	/* 0x80290003 */
+
+/**
+ * invalid pitch argument 
+ */
+#define SCE_DISPLAY_ERROR_INVALID_PITCH			-2144796668	/* 0x80290004 */
+
+/**
+ * invalid width,height argument 
+ */
+#define SCE_DISPLAY_ERROR_INVALID_RESOLUTION	-2144796667	/* 0x80290005 */
+
+/**
+ * invalid update timing argument 
+ */
+#define SCE_DISPLAY_ERROR_INVALID_UPDATETIMING	-2144796666	/* 0x80290006 */
+
+/**
+ * this process has no frame buffer 
+ */
+#define SCE_DISPLAY_ERROR_NO_FRAME_BUFFER		-2144796665	/* 0x80290007 */
+
+/**
+ * this process's frame buffer has no pixel data 
+ */
+#define SCE_DISPLAY_ERROR_NO_PIXEL_DATA			-2144796664	/* 0x80290008 */
+
+/**
+ * the head does not output any signal 
+ */
+#define SCE_DISPLAY_ERROR_NO_OUTPUT_SIGNAL		-2144796663	/* 0x80290009 */
+
+
+#define SCE_DISPLAY_PIXELFORMAT_A8B8G8R8	0x00000000U		/* A:B:G:R=8:8:8:8    32bit */
+#define SCE_DISPLAY_PIXEL_A8B8G8R8			SCE_DISPLAY_PIXELFORMAT_A8B8G8R8
+
+
+
+/*Get number of refresh rate */
+SceInt32 sceDisplayGetRefreshRate(float *pFps);
+
+
 typedef struct SceDisplayFrameBuf {
-	SceSize size;	//!< sizeof(SceDisplayFrameBuf)
-	void *base;	//!< Pointer to framebuffer
-	unsigned int pitch;	//!< pitch pixels
-	unsigned int pixelformat;	//!< use PSP2_DISPLAY_PIXELFORMAT_A8B8G8R8
-	unsigned int width;	//!< framebuffer width
-	unsigned int height;	//!< framebuffer height
+	SceUInt32	size;					/* sizeof(SceDisplayFrameBuf)                      */
+	void		*base;					/* frame buffer base address (256bytes aligned)    */
+	SceUInt32	pitch;					/* frame buffer pitch pixels                       */
+	SceUInt32	pixelformat;			/* pixel format (SCE_DISPLAY_PIXELFORMAT_A8B8G8R8) */
+	SceUInt32	width;					/* frame buffer width                              */
+	SceUInt32	height;					/* frame buffer height                             */
 } SceDisplayFrameBuf;
 
-/**
- * Set/Update framebuffer parameters
- *
- * @param[in] pParam - Pointer to a ::SceDisplayFrameBuf structure.
- * @param[in] sync - One of ::DisplaySetBufSync
- *
- * @return 0 on success, < 0 on error.
- * @note - If NULL is provided as pParam pointer, output is blacked out.
-*/
-int sceDisplaySetFrameBuf(const SceDisplayFrameBuf *pParam, int sync);
 
-/**
- * Get current framebuffer parameters
- *
- * @param[out] pParam - Pointer to a ::SceDisplayFrameBuf structure
- * which will receive framebuffer parameters.
- *
- * @param[in] sync - One of ::DisplaySetBufSync
- *
- * @return 0 on success, < 0 on error.
-*/
-int sceDisplayGetFrameBuf(SceDisplayFrameBuf *pParam, int sync);
+/*Update frame buffer base address and pixel format */
+#define SCE_DISPLAY_UPDATETIMING_NEXTHSYNC	0
+#define SCE_DISPLAY_UPDATETIMING_NEXTVSYNC	1
+SceInt32 sceDisplaySetFrameBuf(const SceDisplayFrameBuf *pFrameBuf, SceInt32 iUpdateTimingMode);
 
-/**
- * Get current number of fps for the current screen mode.
- *
- * @param[out] pFps - Pointer to a float variable to store current number of fps.
- *
- * @return 0 on success, < 0 on error.
- * @note - This function returns a theoretical value, this might not be the exact frame rate.
-*/
-int sceDisplayGetRefreshRate(float *pFps);
+/*Get frame buffer base address and pixel format */
+SceInt32 sceDisplayGetFrameBuf(SceDisplayFrameBuf *pFrameBuf, SceInt32 iUpdateTimingMode);
 
-/**
- * Number of vertical blank pulses up to now
- */
-int sceDisplayGetVcount(void);
 
-/**
- * Wait for vertical blank start
- */
-int sceDisplayWaitVblankStart(void);
 
-/**
- * Wait for vertical blank start with callback
- */
-int sceDisplayWaitVblankStartCB(void);
+/*Get number of VSYNCs up to the present */
+SceInt32 sceDisplayGetVcount(void);
 
-/**
- * Wait for vertical blank start after specified number of vertical periods
- *
- * @param[in] vcount - Number of vertical periods before waiting for vertical blank start
- */
-int sceDisplayWaitVblankStartMulti(unsigned int vcount);
 
-/**
- * Wait for vertical blank start with callback after specified number of vertical periods
- *
- * @param[in] vcount - Number of vertical periods before waiting for vertical blank start
- */
-int sceDisplayWaitVblankStartMultiCB(unsigned int vcount);
+/*Put thread in WAIT state until start of next VBLANK */
+SceInt32 sceDisplayWaitVblankStart(void);
+SceInt32 sceDisplayWaitVblankStartCB(void);
 
-/**
- * Wait for vertical blank start since last update of framebuffer
- */
-int sceDisplayWaitSetFrameBuf(void);
+/*Wait for start of VBLANK after the specified V period has elapsed since the previous call  */
+SceInt32 sceDisplayWaitVblankStartMulti(SceUInt32 vcount);
+SceInt32 sceDisplayWaitVblankStartMultiCB(SceUInt32 vcount);
 
-/**
- * Wait for vertical blank start with callback since last update of framebuffer
- */
-int sceDisplayWaitSetFrameBufCB(void);
+/*Wait for start of VBLANK after the specified V period has elapsed since the previous updating frame buffer */
+SceInt32 sceDisplayWaitSetFrameBuf(void);
+SceInt32 sceDisplayWaitSetFrameBufCB(void);
+SceInt32 sceDisplayWaitSetFrameBufMulti(SceUInt32 vcount);
+SceInt32 sceDisplayWaitSetFrameBufMultiCB(SceUInt32 vcount);
 
-/**
- * Wait for vertical blank start after specified number of vertical periods
- * since last update of framebuffer.
- *
- * @param[in] vcount - Number of vertical periods before waiting for vertical blank start
- */
-int sceDisplayWaitSetFrameBufMulti(unsigned int vcount);
 
-/**
- * Wait for vertical blank start with callback after specified number of vertical periods
- * since last update of framebuffer.
- *
- * @param[in] vcount - Number of vertical periods before waiting for vertical blank start
- */
-int sceDisplayWaitSetFrameBufMultiCB(unsigned int vcount);
+/*Registers callback that is notified at the start of VBLANK */
+SceInt32 sceDisplayRegisterVblankStartCallback(SceUID uid);
+SceInt32 sceDisplayUnregisterVblankStartCallback(SceUID uid);
 
-/**
- * Register callback to be used at each vertical blank start
- *
- * @param[in] uid - Callback UID
- */
-int sceDisplayRegisterVblankStartCallback(SceUID uid);
 
-/**
- * Unregister callback used at each vertical blank start
- *
- * @param[in] uid - Callback UID
- */
-int sceDisplayUnregisterVblankStartCallback(SceUID uid);
-
-#ifdef __cplusplus
+#if defined(__cplusplus)
 }
-#endif
+#endif	/* defined(__cplusplus) */
 
-#endif /* _PSP2_DISPLAY_H_ */
+#endif	/* _PSP2_DISPLAY_DISPLAY_H_ */
